@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fiapx-worker
+  namespace: fiapx
+  labels:
+    app: fiapx-worker
+spec:
+  # This is the deployment that satisfies "processar mais de um vídeo ao
+  # mesmo tempo" — replicas share the same Kafka consumer group, so each
+  # pod gets a disjoint set of video.uploaded partitions and processes
+  # videos in parallel. Scale this (or let the HPA scale it) independently
+  # of the other 3 services.
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: fiapx-worker
+  template:
+    metadata:
+      labels:
+        app: fiapx-worker
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      # S3 access comes from the EKS node group's IAM role (or IRSA) —
+      # no static AWS keys injected here. No JWT_SECRET either: this
+      # service has no HTTP business routes, only /health, /ready, /metrics.
+      containers:
+        - name: app
+          image: fiapx-processing-worker:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - configMapRef:
+                name: fiapx-worker-config
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10

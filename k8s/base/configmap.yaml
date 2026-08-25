@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fiapx-worker-config
+  namespace: fiapx
+data:
+  PORT: "8080"
+  APP_ENV: "production"
+  SERVICE_NAME: "fiapx-processing-worker"
+  S3_BUCKET: "fiapx-videos-production"
+  AWS_REGION: "us-east-1"
+  KAFKA_BROKERS: "kafka.fiapx.svc.cluster.local:9092"
+  REDIS_ADDR: "redis.fiapx.svc.cluster.local:6379"
