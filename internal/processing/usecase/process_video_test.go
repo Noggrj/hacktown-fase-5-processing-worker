@@ -86,7 +86,7 @@ func (p *fakePublisher) PublishVideoProcessed(context.Context, string, string, s
 	return p.processErr
 }
 
-func (p *fakePublisher) PublishVideoFailed(_ context.Context, _, _, _, reason string) error {
+func (p *fakePublisher) PublishVideoFailed(_ context.Context, _, _, _, _, reason string) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.failedCalls++

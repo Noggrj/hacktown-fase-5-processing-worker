@@ -26,5 +26,5 @@ type FrameExtractor interface {
 
 type Publisher interface {
 	PublishVideoProcessed(ctx context.Context, traceparent, videoID, s3ZipKey string, frameCount int) error
-	PublishVideoFailed(ctx context.Context, traceparent, videoID, userID, reason string) error
+	PublishVideoFailed(ctx context.Context, traceparent, videoID, userID, userEmail, reason string) error
 }

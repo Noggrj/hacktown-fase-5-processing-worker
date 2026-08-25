@@ -49,7 +49,7 @@ func (uc *ProcessVideoUseCase) Execute(ctx context.Context, p payloads.VideoUplo
 	zipPath, frameCount, err := uc.extractor.ExtractFrames(ctx, videoPath, workDir)
 	if err != nil {
 		uc.log.Warn("video processing failed", slog.String("videoId", p.VideoID), slog.Any("error", err))
-		if pubErr := uc.pub.PublishVideoFailed(ctx, traceparent, p.VideoID, p.UserID, err.Error()); pubErr != nil {
+		if pubErr := uc.pub.PublishVideoFailed(ctx, traceparent, p.VideoID, p.UserID, p.UserEmail, err.Error()); pubErr != nil {
 			return fmt.Errorf("publish video.failed: %w", pubErr)
 		}
 		return nil

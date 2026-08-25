@@ -41,12 +41,13 @@ func (p *Publisher) PublishVideoProcessed(ctx context.Context, traceparent, vide
 	return p.inner.Publish(ctx, env)
 }
 
-func (p *Publisher) PublishVideoFailed(ctx context.Context, traceparent, videoID, userID, reason string) error {
+func (p *Publisher) PublishVideoFailed(ctx context.Context, traceparent, videoID, userID, userEmail, reason string) error {
 	payload := payloads.VideoFailed{
-		VideoID:  videoID,
-		UserID:   userID,
-		Reason:   reason,
-		FailedAt: time.Now().UTC(),
+		VideoID:   videoID,
+		UserID:    userID,
+		UserEmail: userEmail,
+		Reason:    reason,
+		FailedAt:  time.Now().UTC(),
 	}
 	env, err := events.NewEnvelope(events.TopicVideoFailed, sourceName, videoID, traceparent, payload)
 	if err != nil {
