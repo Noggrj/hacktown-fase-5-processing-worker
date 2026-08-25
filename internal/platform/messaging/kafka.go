@@ -23,12 +23,21 @@ func NewWriter(brokers []string) *kafkago.Writer {
 // NewReader creates a Reader bound to a single topic within a consumer
 // group — multiple replicas of the same service sharing groupID split
 // the topic's partitions between them.
+//
+// StartOffset is explicit (FirstOffset) rather than left at the
+// zero-value: a consumer group that has never committed an offset for
+// this topic must start from the beginning, not from whatever happens to
+// be latest at join time — otherwise a message published before this
+// service's first-ever startup (or during a redeploy gap) would be
+// silently skipped, which is exactly the "não deve perder uma
+// requisição" requirement this system exists to satisfy.
 func NewReader(brokers []string, groupID, topic string) *kafkago.Reader {
 	return kafkago.NewReader(kafkago.ReaderConfig{
-		Brokers:  brokers,
-		GroupID:  groupID,
-		Topic:    topic,
-		MinBytes: 1,
-		MaxBytes: 10e6,
+		Brokers:     brokers,
+		GroupID:     groupID,
+		Topic:       topic,
+		StartOffset: kafkago.FirstOffset,
+		MinBytes:    1,
+		MaxBytes:    10e6,
 	})
 }

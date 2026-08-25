@@ -4,6 +4,12 @@ FROM golang:1.25-alpine AS builder
 ARG VERSION
 WORKDIR /app
 RUN apk add --no-cache git
+# go.mod's local `replace github.com/noggrj/hacktown-fase-5-events =>
+# ../fiapx-events` resolves to /fiapx-events from here (WORKDIR /app).
+# The "fiapx-events" build context is supplied by docker-compose
+# (additional_contexts) for local dev; this whole COPY line goes away
+# together with the replace directive once that module is published.
+COPY --from=fiapx-events / /fiapx-events
 COPY go.mod go.sum* ./
 RUN go mod download
 COPY . .
