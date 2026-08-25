@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
@@ -17,15 +18,33 @@ type S3 struct {
 	bucket string
 }
 
-func NewS3(ctx context.Context, bucket, region string) (*S3, error) {
+// NewS3 talks to real AWS S3 when endpoint/accessKey/secretKey are all
+// empty (the normal production path). When endpoint is set, it points at
+// an S3-compatible service instead (MinIO for local docker-compose)
+// using static credentials and path-style addressing.
+func NewS3(ctx context.Context, bucket, region, endpoint, accessKey, secretKey string) (*S3, error) {
 	if bucket == "" {
 		return nil, fmt.Errorf("S3_BUCKET is empty")
 	}
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
+
+	opts := []func(*config.LoadOptions) error{config.WithRegion(region)}
+	if endpoint != "" {
+		opts = append(opts, config.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(accessKey, secretKey, ""),
+		))
+	}
+	cfg, err := config.LoadDefaultConfig(ctx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("load aws config: %w", err)
 	}
-	return &S3{client: s3.NewFromConfig(cfg), bucket: bucket}, nil
+
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		if endpoint != "" {
+			o.BaseEndpoint = aws.String(endpoint)
+			o.UsePathStyle = true
+		}
+	})
+	return &S3{client: client, bucket: bucket}, nil
 }
 
 func (s *S3) Download(ctx context.Context, key string) (io.ReadCloser, error) {

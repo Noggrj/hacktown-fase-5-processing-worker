@@ -64,7 +64,7 @@ func main() {
 	}
 
 	// ── S3 ──────────────────────────────────────────────────────
-	s3Store, err := storage.NewS3(ctx, cfg.S3Bucket, cfg.AWSRegion)
+	s3Store, err := storage.NewS3(ctx, cfg.S3Bucket, cfg.AWSRegion, cfg.S3Endpoint, cfg.S3AccessKey, cfg.S3SecretKey)
 	if err != nil {
 		log.Warn("s3 unavailable at startup — processing will fail until reachable", slog.Any("error", err))
 	} else {
