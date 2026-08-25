@@ -11,8 +11,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/noggrj/fiapx-events/payloads"
-	"github.com/noggrj/fiapx-processing-worker/internal/processing/usecase"
+	"github.com/noggrj/hacktown-fase-5-events/payloads"
+	"github.com/noggrj/hacktown-fase-5-processing-worker/internal/processing/usecase"
 )
 
 // ---------- fakes ----------

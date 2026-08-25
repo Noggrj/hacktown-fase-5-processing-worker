@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/noggrj/fiapx-processing-worker/internal/processing/ffmpeg"
+	"github.com/noggrj/hacktown-fase-5-processing-worker/internal/processing/ffmpeg"
 )
 
 // TestExtractFrames_RealFFmpeg is an integration test: it shells out to

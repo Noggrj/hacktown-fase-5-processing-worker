@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/noggrj/fiapx-events/payloads"
+	"github.com/noggrj/hacktown-fase-5-events/payloads"
 )
 
 type ProcessVideoUseCase struct {

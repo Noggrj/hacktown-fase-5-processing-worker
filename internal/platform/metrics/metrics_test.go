@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/noggrj/fiapx-processing-worker/internal/platform/metrics"
+	"github.com/noggrj/hacktown-fase-5-processing-worker/internal/platform/metrics"
 )
 
 func TestMiddleware_PassesThroughStatusAndBody(t *testing.T) {

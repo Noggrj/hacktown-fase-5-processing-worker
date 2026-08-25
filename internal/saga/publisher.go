@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	events "github.com/noggrj/fiapx-events"
-	"github.com/noggrj/fiapx-events/payloads"
-	eventskafka "github.com/noggrj/fiapx-events/transport/kafka"
+	events "github.com/noggrj/hacktown-fase-5-events"
+	"github.com/noggrj/hacktown-fase-5-events/payloads"
+	eventskafka "github.com/noggrj/hacktown-fase-5-events/transport/kafka"
 )
 
 const sourceName = "processing-worker"

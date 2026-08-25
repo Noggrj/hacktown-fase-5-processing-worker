@@ -5,11 +5,11 @@ vídeo e zipa o resultado. É o único dos 4 serviços do FIAP X (Hackathon
 SOAT, Fase 5) sem API HTTP de negócio: só consome `video.uploaded` do
 Kafka e publica `video.processed`/`video.failed`.
 
-Contratos de evento em [`fiapx-events`](https://github.com/noggrj/fiapx-events).
+Contratos de evento em [`fiapx-events`](https://github.com/noggrj/hacktown-fase-5-events).
 Quem consome os resultados é o
-[`fiapx-video-service`](https://github.com/noggrj/fiapx-video-service)
+[`fiapx-video-service`](https://github.com/noggrj/hacktown-fase-5-video-service)
 (dono da tabela `videos`) e o
-[`fiapx-notification-service`](https://github.com/noggrj/fiapx-notification-service)
+[`fiapx-notification-service`](https://github.com/noggrj/hacktown-fase-5-notification-service)
 (e-mail em caso de erro).
 
 ## Por que "sem banco próprio"?
@@ -82,7 +82,7 @@ três pra processar vídeos de verdade.
 ## Nota sobre o módulo `fiapx-events`
 
 Mesma situação documentada em `fiapx-video-service`: `go.mod` usa
-`replace github.com/noggrj/fiapx-events => ../fiapx-events` até esse repo
+`replace github.com/noggrj/hacktown-fase-5-events => ../fiapx-events` até esse repo
 ser publicado/taggeado no GitHub. O job `build` do CI é esperado falhar
 até lá.
 

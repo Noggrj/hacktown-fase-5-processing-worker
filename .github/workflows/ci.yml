@@ -29,13 +29,13 @@ jobs:
       - name: Checkout fiapx-processing-worker
         uses: actions/checkout@v4
 
-      # go.mod has a local `replace github.com/noggrj/fiapx-events =>
+      # go.mod has a local `replace github.com/noggrj/hacktown-fase-5-events =>
       # ../fiapx-events` for development convenience — see this repo's
       # README for when/how to remove it.
       - name: Checkout fiapx-events (sibling, for the local replace directive)
         uses: actions/checkout@v4
         with:
-          repository: noggrj/fiapx-events
+          repository: noggrj/hacktown-fase-5-events
           path: ../fiapx-events
 
       - name: Set up Go
