@@ -27,7 +27,7 @@ func TestZipFiles_PackagesAllFilesFlatly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open zip: %v", err)
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 
 	if len(r.File) != 2 {
 		t.Fatalf("expected 2 entries, got %d", len(r.File))

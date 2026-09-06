@@ -39,7 +39,11 @@ func (uc *ProcessVideoUseCase) Execute(ctx context.Context, p payloads.VideoUplo
 	if err != nil {
 		return fmt.Errorf("create temp dir: %w", err)
 	}
-	defer os.RemoveAll(workDir)
+	defer func() {
+		if rmErr := os.RemoveAll(workDir); rmErr != nil {
+			uc.log.Warn("failed to clean up temp dir", slog.String("workDir", workDir), slog.Any("error", rmErr))
+		}
+	}()
 
 	videoPath := filepath.Join(workDir, filepath.Base(p.Filename))
 	if err := uc.downloadTo(ctx, p.S3RawKey, videoPath); err != nil {
@@ -72,13 +76,13 @@ func (uc *ProcessVideoUseCase) downloadTo(ctx context.Context, key, destPath str
 	if err != nil {
 		return err
 	}
-	defer rc.Close()
+	defer func() { _ = rc.Close() }()
 
 	f, err := os.Create(destPath)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	_, err = io.Copy(f, rc)
 	return err
@@ -89,7 +93,7 @@ func (uc *ProcessVideoUseCase) uploadZip(ctx context.Context, zipPath, zipKey st
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	info, err := f.Stat()
 	if err != nil {

@@ -29,15 +29,6 @@ jobs:
       - name: Checkout fiapx-processing-worker
         uses: actions/checkout@v4
 
-      # go.mod has a local `replace github.com/noggrj/hacktown-fase-5-events =>
-      # ../fiapx-events` for development convenience — see this repo's
-      # README for when/how to remove it.
-      - name: Checkout fiapx-events (sibling, for the local replace directive)
-        uses: actions/checkout@v4
-        with:
-          repository: noggrj/hacktown-fase-5-events
-          path: ../fiapx-events
-
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -53,7 +44,7 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
+          version: v2.13.2
           args: --timeout=5m
 
       - name: Run full test suite
@@ -83,9 +74,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      # Same known limitation as fiapx-video-service's build job: fails
-      # until fiapx-events is tagged and go.mod points at a real released
-      # version instead of the local replace directive.
       - name: Checkout fiapx-processing-worker
         uses: actions/checkout@v4
 

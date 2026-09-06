@@ -81,10 +81,9 @@ três pra processar vídeos de verdade.
 
 ## Nota sobre o módulo `fiapx-events`
 
-Mesma situação documentada em `fiapx-video-service`: `go.mod` usa
-`replace github.com/noggrj/hacktown-fase-5-events => ../fiapx-events` até esse repo
-ser publicado/taggeado no GitHub. O job `build` do CI é esperado falhar
-até lá.
+`go.mod` depende de `github.com/noggrj/hacktown-fase-5-events@v1.0.0`, a
+tag real publicada no GitHub — sem `replace` local. `docker build .`
+funciona standalone.
 
 ## Deploy
 

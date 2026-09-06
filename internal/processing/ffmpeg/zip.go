@@ -17,15 +17,21 @@ func zipFiles(files []string, zipPath string) error {
 	if err != nil {
 		return fmt.Errorf("create zip: %w", err)
 	}
-	defer zipFile.Close()
+	defer func() { _ = zipFile.Close() }()
 
 	zw := zip.NewWriter(zipFile)
-	defer zw.Close()
 
 	for _, f := range files {
 		if err := addFileToZip(zw, f); err != nil {
+			_ = zw.Close()
 			return fmt.Errorf("add %s to zip: %w", f, err)
 		}
+	}
+	// zw.Close (not zipFile.Close) is what flushes the central directory —
+	// a silently swallowed error here would produce a truncated/corrupt
+	// zip that the user downloads without any signal something went wrong.
+	if err := zw.Close(); err != nil {
+		return fmt.Errorf("finalize zip: %w", err)
 	}
 	return nil
 }
@@ -35,7 +41,7 @@ func addFileToZip(zw *zip.Writer, filename string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	info, err := file.Stat()
 	if err != nil {
