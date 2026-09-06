@@ -11,6 +11,7 @@ Quem consome os resultados é o
 (dono da tabela `videos`) e o
 [`fiapx-notification-service`](https://github.com/noggrj/hacktown-fase-5-notification-service)
 (e-mail em caso de erro).
+[Documentação da arquitetura completa](https://github.com/noggrj/hacktown-fase-5-infra/blob/main/docs/ARQUITETURA.md).
 
 ## Por que "sem banco próprio"?
 
