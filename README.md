@@ -86,6 +86,26 @@ três pra processar vídeos de verdade.
 tag real publicada no GitHub — sem `replace` local. `docker build .`
 funciona standalone.
 
+## Métricas
+
+`/metrics` expõe, além das genéricas de HTTP, as métricas de negócio do
+pipeline de processamento (gravadas em
+`internal/processing/usecase/process_video.go` — este é o serviço que
+sabe de verdade se o `ffmpeg` funcionou, por isso são registradas aqui,
+não no `video-service`):
+
+| Métrica | Tipo | O que mede |
+|---|---|---|
+| `fiapx_videos_processed_total` | contador | Vídeos processados com sucesso |
+| `fiapx_videos_failed_total` | contador | Vídeos que falharam (ffmpeg, vídeo corrompido) |
+| `fiapx_frames_extracted_total` | contador | Soma de frames extraídos de todos os vídeos |
+| `fiapx_video_processing_duration_seconds` | histograma | Duração do `ExtractFrames` (só o ffmpeg, não download/upload) |
+
+Aparecem no dashboard "FIAP X — Serviços" do
+[`fiapx-infra`](https://github.com/noggrj/hacktown-fase-5-infra) — local
+via `docker-compose` (dá pra gerar dado de verdade subindo um vídeo pelo
+frontend e vendo os números mudarem ao vivo), ou em produção via Grafana.
+
 ## Deploy
 
 `k8s/base/deployment.yaml` roda 2+ réplicas no mesmo consumer group Kafka

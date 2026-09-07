@@ -24,6 +24,35 @@ var (
 		Help:    "HTTP request latency in seconds.",
 		Buckets: prometheus.DefBuckets,
 	}, []string{"path", "method"})
+
+	// Business metrics — exported so internal/processing/usecase can
+	// record them directly. This is the service that actually knows
+	// whether ffmpeg worked, how many frames came out, and how long it
+	// took — the canonical source for these, not video-service (which
+	// only knows "I persisted a status update").
+	VideosProcessed = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "fiapx_videos_processed_total",
+		Help: "Total videos successfully processed (frames extracted, zip uploaded).",
+	})
+
+	VideosFailed = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "fiapx_videos_failed_total",
+		Help: "Total videos that failed processing (ffmpeg error, corrupt input, etc).",
+	})
+
+	FramesExtracted = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "fiapx_frames_extracted_total",
+		Help: "Total frames extracted across all successfully processed videos.",
+	})
+
+	ProcessingDuration = promauto.NewHistogram(prometheus.HistogramOpts{
+		Name: "fiapx_video_processing_duration_seconds",
+		Help: "Time to extract frames from a video (ffmpeg run), regardless of outcome.",
+		// A 1-frame-per-second extraction on a short demo clip finishes
+		// in well under a second; a real multi-minute video takes much
+		// longer — buckets span both without the default's coarse tail.
+		Buckets: []float64{.1, .25, .5, 1, 2.5, 5, 10, 30, 60, 120, 300},
+	})
 )
 
 // Handler serves the /metrics scrape endpoint.

@@ -7,8 +7,10 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/noggrj/hacktown-fase-5-events/payloads"
+	"github.com/noggrj/hacktown-fase-5-processing-worker/internal/platform/metrics"
 )
 
 type ProcessVideoUseCase struct {
@@ -50,8 +52,11 @@ func (uc *ProcessVideoUseCase) Execute(ctx context.Context, p payloads.VideoUplo
 		return fmt.Errorf("download raw video: %w", err)
 	}
 
+	extractStart := time.Now()
 	zipPath, frameCount, err := uc.extractor.ExtractFrames(ctx, videoPath, workDir)
+	metrics.ProcessingDuration.Observe(time.Since(extractStart).Seconds())
 	if err != nil {
+		metrics.VideosFailed.Inc()
 		uc.log.Warn("video processing failed", slog.String("videoId", p.VideoID), slog.Any("error", err))
 		if pubErr := uc.pub.PublishVideoFailed(ctx, traceparent, p.VideoID, p.UserID, p.UserEmail, err.Error()); pubErr != nil {
 			return fmt.Errorf("publish video.failed: %w", pubErr)
@@ -67,6 +72,8 @@ func (uc *ProcessVideoUseCase) Execute(ctx context.Context, p payloads.VideoUplo
 	if err := uc.pub.PublishVideoProcessed(ctx, traceparent, p.VideoID, zipKey, frameCount); err != nil {
 		return fmt.Errorf("publish video.processed: %w", err)
 	}
+	metrics.VideosProcessed.Inc()
+	metrics.FramesExtracted.Add(float64(frameCount))
 	uc.log.Info("video processed", slog.String("videoId", p.VideoID), slog.Int("frameCount", frameCount))
 	return nil
 }
