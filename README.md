@@ -94,3 +94,21 @@ tempo" (cada réplica pega um subconjunto das partições do tópico
 `video.uploaded`). HPA escala por CPU (o `ffmpeg` é o único componente do
 sistema com uso real de CPU). Sem `JWT_SECRET`: este serviço não expõe
 nenhuma rota de negócio, só `/health`/`/ready`/`/metrics`.
+
+### CI/CD — job `deploy`
+
+Pressupõe que a AWS já foi provisionada (`terraform apply` no
+[`fiapx-infra`](https://github.com/noggrj/hacktown-fase-5-infra)). Só
+roda com disparo manual — nunca em push/PR.
+
+Faz: build + push pro ECR → aplica `k8s/base/` (substituindo o nome real
+do bucket no `configmap.yaml` antes) → atualiza a imagem do Deployment e
+espera o rollout. Sem Secret — este serviço não tem banco nem JWT, e as
+credenciais de S3 em produção vêm da role do node EKS, nunca de env var.
+
+**Secrets/Variables do repositório**:
+
+| Secret / Variable | O que é |
+|---|---|
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` (secrets) | Credenciais temporárias da conta AWS Academy `voclabs` |
+| `S3_BUCKET_NAME` (**variable**) | Nome real do bucket (`terraform output videos_bucket_name`) |

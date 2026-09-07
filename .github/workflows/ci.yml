@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Dispara o job "deploy" (build+push da imagem pro ECR, rollout no EKS).
+  # Não roda em push/PR de propósito: sem cluster provisionado por padrão
+  # (ver fiapx-infra), isso ficaria vermelho sempre. Ver "Deploy" no
+  # README pros Secrets/Variables necessários antes de disparar.
+  workflow_dispatch: {}
 
 env:
   GO_VERSION: "1.25"
@@ -92,3 +97,56 @@ jobs:
       - name: Container smoke test (local build only)
         run: |
           docker run --rm fiapx-processing-worker:ci ./server --version
+
+  # Só roda com o disparo manual (workflow_dispatch) — nunca em push/PR.
+  # Sem Secret de banco/JWT (worker não tem rota de negócio nem banco
+  # próprio) — só precisa das credenciais AWS e do nome real do bucket.
+  # Credenciais de S3 em produção vêm da role do node EKS, nunca de uma
+  # env var estática (ver comentário em internal/platform/storage/s3.go).
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    environment: production
+    env:
+      AWS_REGION: us-east-1
+      CLUSTER_NAME: fiapx-cluster
+      ECR_REPO: fiapx-processing-worker
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configura credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login no ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build e push da imagem
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPO }}:${{ github.sha }}
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPO }}:latest
+          build-args: VERSION=${{ github.sha }}
+
+      - name: Atualiza kubeconfig
+        run: aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+      - name: Aplica os manifests (com o nome real do bucket S3)
+        run: |
+          kubectl create namespace fiapx --dry-run=client -o yaml | kubectl apply -f -
+          sed "s/fiapx-videos-production/${{ vars.S3_BUCKET_NAME }}/" k8s/base/configmap.yaml | kubectl apply -f -
+          kubectl apply -f k8s/base/namespace.yaml -f k8s/base/deployment.yaml -f k8s/base/service.yaml -f k8s/base/hpa.yaml
+
+      - name: Atualiza a imagem do Deployment
+        run: |
+          kubectl set image deployment/fiapx-worker app=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPO }}:${{ github.sha }} -n fiapx
+          kubectl rollout status deployment/fiapx-worker -n fiapx --timeout=180s

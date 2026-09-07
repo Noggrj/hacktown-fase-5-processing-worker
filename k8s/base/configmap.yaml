@@ -1,3 +1,6 @@
+# S3_BUCKET abaixo é um placeholder — ver o mesmo comentário em
+# fiapx-video-service/k8s/base/configmap.yaml. O job "deploy" do CI
+# substitui pelo nome real antes de aplicar.
 apiVersion: v1
 kind: ConfigMap
 metadata:
